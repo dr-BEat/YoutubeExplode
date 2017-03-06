@@ -51,8 +51,8 @@ namespace YoutubeExplode
             if (playerSource == null)
             {
                 // Get the javascript source URL
-                string response =
-                    await _requestService.GetStringAsync($"https://www.youtube.com/yts/jsbin/player-{version}/base.js");
+                string response = await _requestService.GetStringAsync($"https://www.youtube.com/yts/jsbin/player-{version}/base.js")
+                                                       .ConfigureAwait(false);
                 if (response.IsBlank())
                     throw new Exception("Could not get the video player source code");
 
@@ -75,7 +75,7 @@ namespace YoutubeExplode
                 throw new Exception("Given video info does not need to be deciphered");
 
             // Get player source
-            var playerSource = await GetPlayerSourceAsync(videoInfo.PlayerVersion);
+            var playerSource = await GetPlayerSourceAsync(videoInfo.PlayerVersion).ConfigureAwait(false);
 
             // Unscramble streams
             foreach (var streamInfo in videoInfo.Streams.Where(s => s.NeedsDeciphering))
@@ -110,7 +110,8 @@ namespace YoutubeExplode
 
             // Get video info
             string eurl = $"https://youtube.googleapis.com/v/{videoId}".UrlEncode();
-            string response = await _requestService.GetStringAsync($"https://www.youtube.com/get_video_info?video_id={videoId}&sts=17221&eurl={eurl}");
+            string response = await _requestService.GetStringAsync($"https://www.youtube.com/get_video_info?video_id={videoId}&sts=17221&eurl={eurl}")
+                                                   .ConfigureAwait(false);
             if (response.IsBlank())
                 throw new Exception("Could not get video info");
 
@@ -120,7 +121,8 @@ namespace YoutubeExplode
                 throw new Exception("Could not parse video info");
 
             // Get player version
-            response = await _requestService.GetStringAsync($"https://www.youtube.com/watch?v={videoId}&gl=US&hl=en&has_verified=1&bpctr=9999999999");
+            response = await _requestService.GetStringAsync($"https://www.youtube.com/watch?v={videoId}&gl=US&hl=en&has_verified=1&bpctr=9999999999")
+                                            .ConfigureAwait(false);
             if (response.IsBlank())
                 throw new Exception("Could not get player version");
 
@@ -130,14 +132,15 @@ namespace YoutubeExplode
             // Decipher
             if (result.NeedsDeciphering)
             {
-                await DecipherAsync(result);
+                await DecipherAsync(result).ConfigureAwait(false);
             }
 
             // Get additional streams from dash if available
             if (result.DashManifest != null)
             {
                 // Get
-                response = await _requestService.GetStringAsync(result.DashManifest.Url);
+                response = await _requestService.GetStringAsync(result.DashManifest.Url)
+                                                .ConfigureAwait(false);
                 if (response.IsBlank())
                     throw new Exception("Could not get dash manifest");
 
@@ -159,7 +162,7 @@ namespace YoutubeExplode
             if (ShouldGetVideoFileSizes)
             {
                 foreach (var streamInfo in result.Streams)
-                    await GetFileSizeAsync(streamInfo);
+                    await GetFileSizeAsync(streamInfo).ConfigureAwait(false);
             }
 
             return result;
@@ -178,7 +181,8 @@ namespace YoutubeExplode
                 throw new Exception("Given stream's signature needs to be deciphered first");
 
             // Get the headers
-            var headers = await _requestService.GetHeadersAsync(streamInfo.Url);
+            var headers = await _requestService.GetHeadersAsync(streamInfo.Url)
+                                               .ConfigureAwait(false);
             if (headers == null)
                 throw new Exception("Could not obtain headers");
 
@@ -203,7 +207,8 @@ namespace YoutubeExplode
                 throw new Exception("Given stream's signature needs to be deciphered first");
 
             // Get stream
-            var stream = await _requestService.GetStreamAsync(streamInfo.Url);
+            var stream = await _requestService.GetStreamAsync(streamInfo.Url)
+                                              .ConfigureAwait(false);
             if (stream == null)
                 throw new Exception("Could not get response stream");
 
